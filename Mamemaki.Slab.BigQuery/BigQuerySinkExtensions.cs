@@ -1,0 +1,51 @@
+﻿using Microsoft.Practices.EnterpriseLibrary.SemanticLogging;
+using Microsoft.Practices.EnterpriseLibrary.SemanticLogging.Utility;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mamemaki.Slab.BigQuery
+{
+    public static class BigQuerySinkExtensions
+    {
+        public static SinkSubscription<BigQuerySink> LogToBigQuery(
+            this IObservable<EventEntry> eventStream,
+            string projectId,
+            string datasetId,
+            string tableId,
+            string authMethod = null,
+            string serviceAccountEmail = null,
+            string serviceAccountCertFile = null,
+            string serviceAccountCertPassphrase = null,
+            bool? autoCreateTable = null,
+            string tableSchemaFile = null,
+            string insertIdFieldName = null,
+            TimeSpan? bufferingInterval = null,
+            int? bufferingCount = null,
+            TimeSpan? onCompletedTimeout = null,
+            int? maxBufferSize = null)
+        {
+            var sink = new BigQuerySink(
+                projectId,
+                datasetId,
+                tableId,
+                authMethod,
+                serviceAccountEmail,
+                serviceAccountCertFile,
+                serviceAccountCertPassphrase,
+                autoCreateTable,
+                tableSchemaFile,
+                insertIdFieldName,
+                bufferingInterval,
+                bufferingCount,
+                onCompletedTimeout,
+                maxBufferSize);
+
+            var subscription = eventStream.Subscribe(sink);
+
+            return new SinkSubscription<BigQuerySink>(subscription, sink);
+        }
+    }
+}

@@ -1,0 +1,37 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="BigQuerySinkElement"
+  targetNamespace="urn:mamemaki.slab.bigquerysink"
+  xmlns="urn:mamemaki.slab.bigquerysink"
+  xmlns:etw= "http://schemas.microsoft.com/practices/2013/entlib/semanticlogging/etw"
+  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+  elementFormDefault="qualified"
+  attributeFormDefault="unqualified">
+
+  <xs:import namespace="http://schemas.microsoft.com/practices/2013/entlib/semanticlogging/etw" />
+
+  <xs:element name="bigQuerySink">
+    <xs:complexType>
+      <xs:complexContent mixed="false">
+        <xs:extension base="etw:SinkBase">
+          <xs:sequence>
+            <xs:any minOccurs="0" maxOccurs="unbounded" processContents="skip"/>
+          </xs:sequence>
+          <xs:attribute name="projectId" type="xs:string" use="required" />
+          <xs:attribute name="datasetId" type="xs:string" use="required" />
+          <xs:attribute name="tableId" type="xs:string" use="required" />
+          <xs:attribute name="authMethod" type="xs:string" use="optional" />
+          <xs:attribute name="serviceAccountEmail" type="xs:string" use="optional" />
+          <xs:attribute name="serviceAccountCertFile" type="xs:string" use="optional" />
+          <xs:attribute name="serviceAccountCertPassphrase" type="xs:string" use="optional" />
+          <xs:attribute name="autoCreateTable" type="xs:boolean" use="optional" />
+          <xs:attribute name="tableSchemaFile" type="xs:string" use="optional" />
+          <xs:attribute name="insertIdFieldName" type="xs:string" use="optional" />
+          <xs:attribute name="bufferingIntervalInSeconds" type="xs:int" use="optional" />
+          <xs:attribute name="bufferingCount" type="xs:int" use="optional" />
+          <xs:attribute name="bufferingFlushAllTimeoutInSeconds" type="xs:int" use="optional" />
+          <xs:attribute name="maxBufferSize" type="xs:int" use="optional" />
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

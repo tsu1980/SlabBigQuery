@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.23107.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mamemaki.Slab.BigQuery", "Mamemaki.Slab.BigQuery\Mamemaki.Slab.BigQuery.csproj", "{B7CE779E-E002-4FB8-BE7B-87F6F8DF0D9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mamemaki.Slab.BigQuery.PlayGround", "Mamemaki.Slab.BigQuery.PlayGround\Mamemaki.Slab.BigQuery.PlayGround.csproj", "{F041ED70-8955-494C-8B78-EA2C621CF5AD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B7CE779E-E002-4FB8-BE7B-87F6F8DF0D9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B7CE779E-E002-4FB8-BE7B-87F6F8DF0D9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B7CE779E-E002-4FB8-BE7B-87F6F8DF0D9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B7CE779E-E002-4FB8-BE7B-87F6F8DF0D9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F041ED70-8955-494C-8B78-EA2C621CF5AD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F041ED70-8955-494C-8B78-EA2C621CF5AD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F041ED70-8955-494C-8B78-EA2C621CF5AD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F041ED70-8955-494C-8B78-EA2C621CF5AD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		EnterpriseLibraryConfigurationToolBinariesPath = packages\TransientFaultHandling.Core.5.1.1209.0\lib\NET4;packages\Unity.2.1.505.0\lib\NET35;packages\Unity.Interception.2.1.505.0\lib\NET35;packages\EnterpriseLibrary.Common.5.0.505.0\lib\NET35;packages\EnterpriseLibrary.WindowsAzure.TransientFaultHandling.5.1.1209.0\lib\NET4;packages\EnterpriseLibrary.WindowsAzure.TransientFaultHandling.5.1.1209.0\DesignTime
+	EndGlobalSection
+EndGlobal
