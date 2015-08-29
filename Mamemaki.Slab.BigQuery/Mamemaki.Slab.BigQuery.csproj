@@ -118,6 +118,8 @@
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Include="Mamemaki.Slab.BigQuery.nuspec" />
+    <None Include="Package.ps1" />
     <None Include="packages.config" />
     <None Include="SemanticLogging-svc.xsd">
       <SubType>Designer</SubType>
