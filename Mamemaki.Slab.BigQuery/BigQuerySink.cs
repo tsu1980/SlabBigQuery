@@ -429,8 +429,18 @@ PostRawJSON:{6}",
             var properties = new Dictionary<string, object>();
             foreach (var fieldSchema in TableSchema.Fields)
             {
-                properties[fieldSchema.Name] = GetValueByBigQueryFieldName(
-                    eventEntry, fieldSchema.Name);
+                var val = GetValueByFieldName(eventEntry, fieldSchema.Name);
+                if (val == null)
+                {
+                    if (fieldSchema.Mode == "REQUIRED")
+                    {
+                        throw new Exception($"No value for the field({fieldSchema.Name})");
+                    }
+                }
+                else
+                {
+                    properties[fieldSchema.Name] = val;
+                }
             }
 
             string insertId = null;
@@ -442,8 +452,9 @@ PostRawJSON:{6}",
                 }
                 else
                 {
-                    insertId = GetValueByBigQueryFieldName(
-                        eventEntry, InsertIdFieldName).ToString();
+                    insertId = GetValueByFieldName(eventEntry, InsertIdFieldName).ToString();
+                    if (insertId == null)
+                        throw new Exception($"No value for the field({InsertIdFieldName})");
                 }
             }
 
@@ -459,8 +470,8 @@ PostRawJSON:{6}",
         /// </summary>
         /// <param name="eventEntry"></param>
         /// <param name="fieldName"></param>
-        /// <returns>string, int, DateTime</returns>
-        private object GetValueByBigQueryFieldName(EventEntry eventEntry, string fieldName)
+        /// <returns>string, int, DateTime. null if not found</returns>
+        private object GetValueByFieldName(EventEntry eventEntry, string fieldName)
         {
             // First, find from payloads
             for (var i = 0; i < eventEntry.Payload.Count; i++)
@@ -494,7 +505,7 @@ PostRawJSON:{6}",
                 case "RelatedActivityId": return eventEntry.RelatedActivityId.ToString();
             }
 
-            throw new Exception($"No value for the field({fieldName})");
+            return null;
         }
     }
 }

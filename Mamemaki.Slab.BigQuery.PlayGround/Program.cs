@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Mamemaki.Slab.BigQuery.PlayGround
@@ -55,9 +56,11 @@ namespace Mamemaki.Slab.BigQuery.PlayGround
                     onCompletedTimeout: Constants.DefaultBufferingFlushAllTimeout,
                     maxBufferSize: 30000);
 
+                PlayGroundEventSource.Log.Trace("start");
                 InsertRows(3);
-                System.Threading.Thread.Sleep(100);
+                Thread.Sleep(1);
                 InsertRows(3);
+                PlayGroundEventSource.Log.Trace("end");
             }
 
             Console.WriteLine("Press any key to exit");
@@ -69,6 +72,7 @@ namespace Mamemaki.Slab.BigQuery.PlayGround
             var rows = Enumerable.Range(0, count);
             foreach (var item in rows)
             {
+                Thread.Sleep(1);
                 PlayGroundEventSource.Log.Count(item);
             }
         }

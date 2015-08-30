@@ -1,0 +1,17 @@
+[
+  {
+    "name": "Timestamp",
+    "type": "TIMESTAMP",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "FormattedMessage",
+    "type": "STRING",
+    "mode": "REQUIRED"
+  },
+  {
+    "name": "cnt",
+    "type": "INTEGER",
+    "description": "count value"
+  }
+]
