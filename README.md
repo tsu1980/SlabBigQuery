@@ -91,7 +91,7 @@ hello.json
 ### BigQuerySink parameters
 
 Parameter  | Description | Required(default)
-------------- | -------------
+------------- | ------------- | -------------
 `projectId` | Project id of Google BigQuery. | Yes
 `datasetId` | Dataset id of Google BigQuery. | Yes
 `tableId` | Table id of Google BigQuery. Expandable through DateTime.Format(). e.g. "accesslog{yyyyMMdd}" => accesslog20150101 (bracket braces needed) | Yes
@@ -153,7 +153,7 @@ Example:
 ]
 ```
 
-### Specifying insertId property
+### <a id="specifying_insertId_property"></a>Specifying insertId property
 
 BigQuery uses `insertId` property to detect duplicate insertion requests (see [data consistency](https://cloud.google.com/bigquery/streaming-data-into-bigquery#dataconsistency) in Google BigQuery documents).
 You can set `insertIdFieldName` option to specify the field to use as `insertId` property.
