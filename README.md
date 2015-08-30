@@ -17,7 +17,7 @@ Mamemaki.Slab.BigQuery is [SLAB]\(Semantic Logging Application Block) sink for [
             var datasetId = "xxxxxxx";
             var tableId = "hello{yyyyMM01}";
             var serviceAccountEmail = "000000000000-xxxxxxxxxxxxx@developer.gserviceaccount.com";
-            var serviceAccountCertFile = @"/path/to/xxxx-000000000000.p12";
+            var privateKeyFile = @"/path/to/xxxx-000000000000.p12";
             var tableSchemaFile = @"/path/to/hello.json";
             using (var listener = new ObservableEventListener())
             {
@@ -28,7 +28,7 @@ Mamemaki.Slab.BigQuery is [SLAB]\(Semantic Logging Application Block) sink for [
                     datasetId: datasetId,
                     tableId: tableId,
                     serviceAccountEmail: serviceAccountEmail,
-                    serviceAccountCertFile: serviceAccountCertFile,
+                    privateKeyFile: privateKeyFile,
                     autoCreateTable: true,
                     tableSchemaFile: tableSchemaFile);
 
@@ -82,6 +82,10 @@ hello.json
     "name": "FormattedMessage",
     "type": "STRING",
     "mode": "REQUIRED"
+  },
+  {
+    "name": "to",
+    "type": "STRING"
   }
 ]
 ```
@@ -97,8 +101,8 @@ Parameter  | Description | Required(default)
 `tableId` | Table id of Google BigQuery. Expandable through DateTime.Format(). e.g. "accesslog{yyyyMMdd}" => accesslog20150101 (bracket braces needed) | Yes
 `authMethod` | Accepts "private_key" only. | No("private_key")
 `serviceAccountEmail` | Email address of Google BigQuery [service account]. | Yes if authMethod == "private_key"
-`serviceAccountCertFile` | Private key file(*.p12) of Google BigQuery [service account]. | Yes if authMethod == "private_key"
-`serviceAccountCertPassphrase` | Password of Google BigQuery [service account]. | No("notasecret")
+`privateKeyFile` | Private key file(*.p12) of Google BigQuery [service account]. | Yes if authMethod == "private_key"
+`privateKeyPassphrase` | Private key passphrase of Google BigQuery [service account]. | No("notasecret")
 `autoCreateTable` | If set true, check table exsisting and create table dynamically. see [Dynamic table creating](#dynamic_table_creating). | No(false)
 `tableSchemaFile` | Json file that define Google BigQuery table schema. | Yes
 `insertIdFieldName` | The field name of InsertId. If set `%uuid%` generate uuid each time. if not set InsertId will not set. see [Specifying insertId property](#specifying_insertId_property). | No(null)
@@ -170,6 +174,7 @@ To find the value corresponding to BigQuery table field from EventEntry. We use 
 
 1. Find matching name from Payloads.
 1. Find matching name from built-in [EventEntry] attributes.
+1. Error if field mode is "REQUIRED", else will not set the field value.
 
 Suppoeted built-in [EventEntry] attributes:
 
