@@ -70,8 +70,8 @@ namespace Mamemaki.Slab.BigQuery
         /// <param name="tableId">Table id. Expand through DateTime.Format(). e.g. "accesslogyyyyMMdd" => accesslog20150101 <see cref="https://msdn.microsoft.com/en-us/library/vstudio/zdtaw1bw(v=vs.100).aspx"/></param>
         /// <param name="authMethod">private_key</param>
         /// <param name="serviceAccountEmail">000000000000-xxxxxxxxxxxxxxxxxxxxxx@developer.gserviceaccount.com</param>
-        /// <param name="serviceAccountCertFile">/path/to/xxxx-000000000000.p12</param>
-        /// <param name="serviceAccountCertPassphrase">notasecret</param>
+        /// <param name="privateKeyFile">/path/to/xxxx-000000000000.p12</param>
+        /// <param name="privateKeyPassphrase">notasecret</param>
         /// <param name="autoCreateTable">Create table if it does not exists</param>
         /// <param name="tableSchemaFile">Json file path that bigquery table schema</param>
         /// <param name="insertIdFieldName">The field name of InsertId</param>
@@ -85,8 +85,8 @@ namespace Mamemaki.Slab.BigQuery
             string tableId,
             string authMethod = null,
             string serviceAccountEmail = null,
-            string serviceAccountCertFile = null,
-            string serviceAccountCertPassphrase = null,
+            string privateKeyFile = null,
+            string privateKeyPassphrase = null,
             bool? autoCreateTable = null,
             string tableSchemaFile = null,
             string insertIdFieldName = null,
@@ -101,10 +101,10 @@ namespace Mamemaki.Slab.BigQuery
                 throw new NotSupportedException("authMethod must be 'private_key'");
             if (String.IsNullOrEmpty(serviceAccountEmail))
                 throw new ArgumentException("serviceAccountEmail");
-            if (String.IsNullOrEmpty(serviceAccountCertFile))
-                throw new ArgumentException("serviceAccountCertFile");
-            if (serviceAccountCertPassphrase == null)
-                serviceAccountCertPassphrase = "notasecret";
+            if (String.IsNullOrEmpty(privateKeyFile))
+                throw new ArgumentException("privateKeyFile");
+            if (privateKeyPassphrase == null)
+                privateKeyPassphrase = "notasecret";
             if (String.IsNullOrEmpty(projectId))
                 throw new ArgumentException("projectId");
             if (String.IsNullOrEmpty(datasetId))
@@ -139,8 +139,8 @@ namespace Mamemaki.Slab.BigQuery
 
             // Setup bigquery client
             var certificate = new X509Certificate2(
-                serviceAccountCertFile, 
-                serviceAccountCertPassphrase, 
+                privateKeyFile, 
+                privateKeyPassphrase, 
                 X509KeyStorageFlags.Exportable);
 
             ServiceAccountCredential credential = new ServiceAccountCredential(

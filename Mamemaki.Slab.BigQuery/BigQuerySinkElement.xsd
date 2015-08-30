@@ -21,8 +21,8 @@
           <xs:attribute name="tableId" type="xs:string" use="required" />
           <xs:attribute name="authMethod" type="xs:string" use="optional" />
           <xs:attribute name="serviceAccountEmail" type="xs:string" use="optional" />
-          <xs:attribute name="serviceAccountCertFile" type="xs:string" use="optional" />
-          <xs:attribute name="serviceAccountCertPassphrase" type="xs:string" use="optional" />
+          <xs:attribute name="privateKeyFile" type="xs:string" use="optional" />
+          <xs:attribute name="privateKeyPassphrase" type="xs:string" use="optional" />
           <xs:attribute name="autoCreateTable" type="xs:boolean" use="optional" />
           <xs:attribute name="tableSchemaFile" type="xs:string" use="optional" />
           <xs:attribute name="insertIdFieldName" type="xs:string" use="optional" />

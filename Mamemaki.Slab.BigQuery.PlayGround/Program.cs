@@ -15,14 +15,14 @@ namespace Mamemaki.Slab.BigQuery.PlayGround
         {
             if (args.Length < 5)
             {
-                Console.WriteLine("Mamemaki.Slab.BigQuery.PlayGround.exe <projectId> <datasetId> <tableId> <serviceAccountEmail> <serviceAccountCertFile>");
+                Console.WriteLine("Mamemaki.Slab.BigQuery.PlayGround.exe <projectId> <datasetId> <tableId> <serviceAccountEmail> <privateKeyFile>");
                 return;
             }
             var projectId = args[0];
             var datasetId = args[1];
             var tableId = args[2];
             var serviceAccountEmail = args[3];
-            var serviceAccountCertFile = args[4];
+            var privateKeyFile = args[4];
             var tableSchemaFile = args[5];
 
             using (var listenerConsole = new ObservableEventListener())
@@ -45,8 +45,8 @@ namespace Mamemaki.Slab.BigQuery.PlayGround
                     tableId: tableId,
                     authMethod: "private_key",
                     serviceAccountEmail: serviceAccountEmail,
-                    serviceAccountCertFile: serviceAccountCertFile,
-                    serviceAccountCertPassphrase: "notasecret",
+                    privateKeyFile: privateKeyFile,
+                    privateKeyPassphrase: "notasecret",
                     autoCreateTable: true,
                     tableSchemaFile: tableSchemaFile,
                     insertIdFieldName: "%uuid%",
