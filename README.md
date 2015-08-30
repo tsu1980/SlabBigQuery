@@ -20,7 +20,12 @@ Mamemaki.Slab.BigQuery is [SLAB]\(Semantic Logging Application Block) sink for [
             var privateKeyFile = @"/path/to/xxxx-000000000000.p12";
             var tableSchemaFile = @"/path/to/hello.json";
             using (var listener = new ObservableEventListener())
+            using (var listenerDebug = new ObservableEventListener())
             {
+                listenerDebug.EnableEvents(SemanticLoggingEventSource.Log, EventLevel.LogAlways);
+                listenerDebug.EnableEvents(BigQuerySinkEventSource.Log, EventLevel.LogAlways);
+                listenerDebug.LogToConsole();
+
                 listener.EnableEvents(MyEventSource.Log, EventLevel.LogAlways);
                 listener.LogToConsole();
                 listener.LogToBigQuery(
