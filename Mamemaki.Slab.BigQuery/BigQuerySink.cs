@@ -112,13 +112,13 @@ namespace Mamemaki.Slab.BigQuery
             if (String.IsNullOrEmpty(tableId))
                 throw new ArgumentException("tableId");
             if (bufferingInterval == null)
-                bufferingInterval = Buffering.DefaultBufferingInterval;
+                bufferingInterval = Constants.DefaultBufferingInterval;
             if (bufferingCount == null)
-                bufferingCount = Buffering.DefaultBufferingCount;
+                bufferingCount = Constants.DefaultBufferingCount;
             if (onCompletedTimeout == null)
                 onCompletedTimeout = Constants.DefaultBufferingFlushAllTimeout;
             if (maxBufferSize == null)
-                maxBufferSize = Buffering.DefaultMaxBufferSize;
+                maxBufferSize = Constants.DefaultMaxBufferSize;
             this.ProjectId = projectId;
             this.DatasetId = datasetId;
             this.TableId = tableId;
