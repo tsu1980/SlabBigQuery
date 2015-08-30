@@ -21,3 +21,5 @@ Function Publish-Package($ver) {
 $version = Update-Version "bin\Release\Mamemaki.Slab.BigQuery.dll"
 Write-Output "version: $version"
 $success = Publish-Package $version
+
+Read-Host -Prompt "Press Enter to continue"
