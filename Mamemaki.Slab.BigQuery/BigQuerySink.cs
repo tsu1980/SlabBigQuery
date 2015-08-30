@@ -27,7 +27,6 @@ namespace Mamemaki.Slab.BigQuery
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private BigqueryService _BQSvc;
         private IBackOff _BackOff;
-        private BigQueryRowDataMap _BigQueryRowDataMap;
 
         public string ProjectId { get; private set; }
         public string DatasetId { get; private set; }
@@ -131,7 +130,6 @@ namespace Mamemaki.Slab.BigQuery
                 TableSchema = LoadTableSchema(TableSchemaFile);
             if (TableSchema == null)
                 throw new Exception("table schema not set");
-            _BigQueryRowDataMap = new BigQueryRowDataMap(TableSchema, InsertIdFieldName);
             // Expand table id 1st time within force mode
             ExpandTableIdIfNecessary(force: true);
             // configure finished
@@ -251,8 +249,7 @@ namespace Mamemaki.Slab.BigQuery
 
         private IList<TableDataInsertAllRequest.RowsData> CreateRows(IEnumerable<EventEntry> collection)
         {
-            return collection
-                .Select(s => _BigQueryRowDataMap.CreateRowData(s)).ToList();
+            return collection.Select(s => CreateRowData(s)).ToList();
         }
 
         public async Task InsertDataAsync(IList<TableDataInsertAllRequest.RowsData> rows)
@@ -427,123 +424,77 @@ PostRawJSON:{6}",
             }
         }
 
-        class BigQueryRowDataMap
+        public TableDataInsertAllRequest.RowsData CreateRowData(EventEntry eventEntry)
         {
-            public TableSchema TableSchema { get; private set; }
-            public string InsertIdFieldName { get; private set; }
-
-            class MapEntry
+            var properties = new Dictionary<string, object>();
+            foreach (var fieldSchema in TableSchema.Fields)
             {
-                public string Name { get; set; }
-                public Func<EventEntry, object> GetValFunc { get; set; }
+                properties[fieldSchema.Name] = GetValueByBigQueryFieldName(
+                    eventEntry, fieldSchema.Name);
             }
 
-            private List<MapEntry> MapEntries;
-            private Func<string> GetInsertIdFunc { get; set; }
-            private Func<EventEntry, object> GetValFuncForGetInsertIdFunc { get; set; }
-
-            public BigQueryRowDataMap(TableSchema tableSchema, string insertIdFieldName)
+            string insertId = null;
+            if (InsertIdFieldName != null)
             {
-                this.TableSchema = tableSchema;
-                this.InsertIdFieldName = insertIdFieldName;
-            }
-
-            public TableDataInsertAllRequest.RowsData CreateRowData(EventEntry eventEntry)
-            {
-                if (MapEntries == null)
+                if (InsertIdFieldName == "%uuid%")
                 {
-                    CreateMap(eventEntry);
+                    insertId = Guid.NewGuid().ToString();
                 }
-
-                var properties = new Dictionary<string, object>();
-                foreach (var entry in MapEntries)
+                else
                 {
-                    properties[entry.Name] = entry.GetValFunc(eventEntry);
-                }
-
-                string insertId = null;
-                if (GetInsertIdFunc != null)
-                {
-                    insertId = GetInsertIdFunc();
-                }
-
-                return new TableDataInsertAllRequest.RowsData
-                {
-                    InsertId = insertId,
-                    Json = properties
-                };
-            }
-
-            private void CreateMap(EventEntry eventEntry)
-            {
-                MapEntries = new List<MapEntry>();
-                foreach (var fieldSchema in TableSchema.Fields)
-                {
-                    var entry = new MapEntry();
-                    entry.Name = fieldSchema.Name;
-                    entry.GetValFunc = GetGetValueFuncByBigQueryFieldName(eventEntry, fieldSchema.Name);
-                    MapEntries.Add(entry);
-                }
-
-                GetInsertIdFunc = null;
-                if (InsertIdFieldName != null)
-                {
-                    if (InsertIdFieldName == "%uuid%")
-                    {
-                        GetInsertIdFunc = () => Guid.NewGuid().ToString();
-                    }
-                    else
-                    {
-                        GetValFuncForGetInsertIdFunc = GetGetValueFuncByBigQueryFieldName(
-                            eventEntry, InsertIdFieldName);
-                        GetInsertIdFunc = () => GetValFuncForGetInsertIdFunc(eventEntry).ToString();
-                    }
+                    insertId = GetValueByBigQueryFieldName(
+                        eventEntry, InsertIdFieldName).ToString();
                 }
             }
 
-            /// <summary>
-            /// Get function that return value that corresponds to BigQuery field
-            /// </summary>
-            /// <param name="eventEntry"></param>
-            /// <param name="fieldName"></param>
-            /// <returns>string, int, DateTime</returns>
-            private Func<EventEntry, object> GetGetValueFuncByBigQueryFieldName(
-                EventEntry eventEntry, string fieldName)
+            return new TableDataInsertAllRequest.RowsData
             {
-                // First, find from payloads
-                for (var i = 0; i < eventEntry.Payload.Count; i++)
-                {
-                    if (fieldName == eventEntry.Schema.Payload[i])
-                    {
-                        return (e) => e.Payload[i];
-                    }
-                }
+                InsertId = insertId,
+                Json = properties
+            };
+        }
 
-                // Second, find from built-in EventEntry properties
-                switch (fieldName)
+        /// <summary>
+        /// Get value that corresponds to BigQuery field
+        /// </summary>
+        /// <param name="eventEntry"></param>
+        /// <param name="fieldName"></param>
+        /// <returns>string, int, DateTime</returns>
+        private object GetValueByBigQueryFieldName(EventEntry eventEntry, string fieldName)
+        {
+            // First, find from payloads
+            for (var i = 0; i < eventEntry.Payload.Count; i++)
+            {
+                if (fieldName == eventEntry.Schema.Payload[i])
                 {
-                    case "EventId": return (e) => e.EventId;
-                    case "EventName": return (e) => e.Schema.EventName;
-                    case "Level": return (e) => (int)e.Schema.Level;
-                    case "FormattedMessage": return (e) => e.FormattedMessage;
-                    case "Keywords": return (e) => (long)e.Schema.Keywords;
-                    case "KeywordsDescription": return (e) => e.Schema.KeywordsDescription;
-                    case "Task": return (e) => (int)e.Schema.Task;
-                    case "TaskName": return (e) => e.Schema.TaskName;
-                    case "Opcode": return (e) => (int)e.Schema.Opcode;
-                    case "OpcodeName": return (e) => e.Schema.OpcodeName;
-                    case "Timestamp": return (e) => e.Timestamp;
-                    case "ProcessId": return (e) => e.ProcessId;
-                    case "ThreadId": return (e) => e.ThreadId;
-                    case "ProviderId": return (e) => e.ProviderId.ToString();
-                    case "ProviderName": return (e) => e.Schema.ProviderName;
-                    case "Version": return (e) => e.Schema.Version;
-                    case "ActivityId": return (e) => e.ActivityId.ToString();
-                    case "RelatedActivityId": return (e) => e.RelatedActivityId.ToString();
+                    return eventEntry.Payload[i];
                 }
-
-                throw new Exception($"No value for the field({fieldName})");
             }
+
+            // Second, find from built-in EventEntry properties
+            switch (fieldName)
+            {
+                case "EventId": return eventEntry.EventId;
+                case "EventName": return eventEntry.Schema.EventName;
+                case "Level": return (int)eventEntry.Schema.Level;
+                case "FormattedMessage": return eventEntry.FormattedMessage;
+                case "Keywords": return (long)eventEntry.Schema.Keywords;
+                case "KeywordsDescription": return eventEntry.Schema.KeywordsDescription;
+                case "Task": return (int)eventEntry.Schema.Task;
+                case "TaskName": return eventEntry.Schema.TaskName;
+                case "Opcode": return (int)eventEntry.Schema.Opcode;
+                case "OpcodeName": return eventEntry.Schema.OpcodeName;
+                case "Timestamp": return eventEntry.Timestamp;
+                case "ProcessId": return eventEntry.ProcessId;
+                case "ThreadId": return eventEntry.ThreadId;
+                case "ProviderId": return eventEntry.ProviderId.ToString();
+                case "ProviderName": return eventEntry.Schema.ProviderName;
+                case "Version": return eventEntry.Schema.Version;
+                case "ActivityId": return eventEntry.ActivityId.ToString();
+                case "RelatedActivityId": return eventEntry.RelatedActivityId.ToString();
+            }
+
+            throw new Exception($"No value for the field({fieldName})");
         }
     }
 }
