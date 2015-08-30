@@ -90,6 +90,10 @@ hello.json
 ]
 ```
 
+Query result in Google BigQuery console:
+
+![Query result in Google BigQuery console](images/Sample_QueryResult.JPG)
+
 ## Configuration
 
 ### BigQuerySink parameters
@@ -168,38 +172,38 @@ If set `%uuid%` to `insertIdFieldName`, generate uuid each time.
 
 When `autoCreateTable` is set to `true`, check exsiting the table before insertion, then create table if does not exist. When table name changed, rerun this sequence again.
 
-### Field mapping
+### Lookup field value
 
-To find the value corresponding to BigQuery table field from EventEntry. We use below rules.
+To find the value corresponding to BigQuery table field from [EventEntry], we use following rule.
 
 1. Find matching name from Payloads.
-1. Find matching name from built-in [EventEntry] attributes.
+1. Find matching name from built-in [EventEntry] properties.
 1. Error if field mode is "REQUIRED", else will not set the field value.
 
-Suppoeted built-in [EventEntry] attributes:
+Suppoeted built-in [EventEntry] properties:
 
-Name  | Data type
-------------- | -------------
-`EventId` | INTEGER
-`EventName` | STRING
-`Level` | INTEGER
-`FormattedMessage` | STRING
-`Keywords` | INTEGER
-`KeywordsDescription` | STRING
-`Task` | INTEGER
-`TaskName` | STRING
-`Opcode` | INTEGER
-`OpcodeName` | STRING
-`Timestamp` | TIMESTAMP
-`ProcessId` | INTEGER
-`ThreadId` | INTEGER
-`ProviderId` | STRING
-`ProviderName` | STRING
-`Version` | INTEGER
-`ActivityId` | STRING
-`RelatedActivityId` | STRING
+Name | Description | Data type
+------------- | ------------- | -------------
+`EventId` | Activity ID on the thread that the event was written to | INTEGER
+`EventName` | Event identifier | STRING
+`Level` | Level of the event | INTEGER
+`FormattedMessage` | Fomatted message for the event | STRING
+`Keywords` | Keywords for the event | INTEGER
+`KeywordsDescription` | Human-readable string name for the Keywords property | STRING
+`Task` | Task for the event | INTEGER
+`TaskName` | Task name | STRING
+`Opcode` | Operation code for the event | INTEGER
+`OpcodeName` | Human-readable string name for the Opcode property | STRING
+`Version` | Version of the event | INTEGER
+`Timestamp` | Timestamp of the event | TIMESTAMP
+`ProcessId` | Process id of the event | INTEGER
+`ThreadId` | Thread id of the event | INTEGER
+`ProviderId` | Id of the source originating the event | STRING
+`ProviderName` | Provider name | STRING
+`ActivityId` | Activity ID on the thread that the event was written to | STRING
+`RelatedActivityId` | Identifier of an activity that is related to the activity represented by the current instance | STRING
 
-NOTE: EventEntry value's data type and BigQuery table field's data type must match too.
+NOTE: [EventEntry] value's data type and BigQuery table field's data type must be match too.
 
 ## References
 
@@ -215,6 +219,7 @@ Copyright (c) 2015, Tsuyoshi Sumiyoshi and collaborators. All rights reserved
 
 [ETW]: https://msdn.microsoft.com/en-us/library/windows/desktop/bb968803(v=vs.85).aspx
 [EventSource]: https://msdn.microsoft.com/en-us/library/system.diagnostics.tracing.eventsource%28v=vs.110%29.aspx
+[EventEntry]: https://msdn.microsoft.com/en-us/library/microsoft.practices.enterpriselibrary.semanticlogging.evententry(v=pandp.60).aspx
 [SLAB]: https://github.com/mspnp/semantic-logging
 [Google BigQuery]: https://cloud.google.com/bigquery/
 [service account]: https://developers.google.com/identity/protocols/OAuth2ServiceAccount
