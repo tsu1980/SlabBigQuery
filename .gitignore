@@ -190,4 +190,4 @@ _Pvt_Extensions/
 ModelManifest.xml
 
 # User upload files
-/Mamemaki.Slab.BigQuery/*.nupkg
+/*.nupkg
