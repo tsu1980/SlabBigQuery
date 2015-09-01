@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Mamemaki.Slab.BigQuery.Service</id>
+    <version>$version$</version>
+    <title>Mamemaki.Slab.BigQuery.Service</title>
+    <authors>Tsuyoshi Sumiyoshi</authors>
+    <owners>Tsuyoshi Sumiyoshi</owners>
+    <licenseUrl>http://opensource.org/licenses/Apache-2.0</licenseUrl>
+    <projectUrl>https://github.com/tsu1980/SlabBigQuery</projectUrl>
+    <iconUrl>https://raw.githubusercontent.com/tsu1980/SlabBigQuery/master/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Out-of-process Windows Service for SLAB, with Mamemaki.Slab.BigQuery.</description>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <copyright>Copyright Tsuyoshi Sumiyoshi 2015</copyright>
+    <tags>slab bigquery</tags>
+  </metadata>
+</package>

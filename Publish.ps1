@@ -9,6 +9,7 @@ $targetDir = Join-Path -Path $projDir -ChildPath "bin\Release"
 $targetFile = Join-Path -Path $targetDir -ChildPath "Mamemaki.Slab.BigQuery.dll"
 $nuspecTempFile = Join-Path -Path $projDir -ChildPath "Mamemaki.Slab.BigQuery.nuspec.template.xml"
 $nuspecFile = Join-Path -Path $projDir -ChildPath "Mamemaki.Slab.BigQuery.nuspec"
+$slabSvcProjDir = Join-Path -Path $current -ChildPath "Mamemaki.Slab.BigQuery.Service"
 $githubUrl = "https://github.com/tsu1980/SlabBigQuery.git"
 $githubApiUrl = "https://api.github.com/repos/tsu1980/SlabBigQuery"
 
@@ -66,6 +67,9 @@ Function Create-OOPPackage($ver, $destDir)
 	Remove-Item $SLABSVC_WORKDIR\Newtonsoft.Json.dll
 	Copy-Item $targetDir\* -Destination $SLABSVC_WORKDIR -Exclude Microsoft.Practices.EnterpriseLibrary.SemanticLogging.*
 
+	#Rename SemanticLogging-svc.xml
+	Rename-Item -Path $SLABSVC_WORKDIR\SemanticLogging-svc.xml -NewName SemanticLogging-svc.default.xml
+
 	# Adding dependencies of Mamemaki.Slab.Bigquery.dll to SemanticLogging-svc.exe.config
 	$SLABSVCCONFIG_FILENAME = "$SLABSVC_WORKDIR\SemanticLogging-svc.exe.config"
 	$txtSlabBigqueryDependencies = '<dependentAssembly>
@@ -89,7 +93,7 @@ Function Create-OOPPackage($ver, $destDir)
 	(Get-Content $SLABSVCCONFIG_FILENAME).Replace(' xmlns=""', '') | Set-Content $SLABSVCCONFIG_FILENAME
 
 	# Create final zip file
-	$SLABSVC_RELEASE_ZIPNAME = Join-Path -Path $destDir -ChildPath "SlabBigquery-svc.$ver.zip"
+	$SLABSVC_RELEASE_ZIPNAME = Join-Path -Path $destDir -ChildPath "SlabBigquery-svc.zip"
 	Remove-Item $SLABSVC_WORKDIR\*.pdb
 	Remove-Item $SLABSVC_WORKDIR\install-packages.ps1
 	Compress-Archive -Path $SLABSVC_WORKDIR\* -DestinationPath $SLABSVC_RELEASE_ZIPNAME -Force
@@ -275,6 +279,48 @@ Function Publish-NugetPackage($ver, $destDir, $changelog)
 	Write-Output "Publishing Nuget package completed successfully"
 }
 
+Function Publish-OOPSvcNugetPackage($ver, $releaseDir, $changelog)
+{
+	Write-Output "Publishing Out-of-process service Nuget package start.."
+
+	# Prepare work dir
+	$nugetWorkDir = Join-Path -Path $releaseDir -ChildPath "SLABSVC-NUGET-WORK"
+	If (Test-Path $nugetWorkDir) {
+		Remove-Item $nugetWorkDir -Recurse
+	}
+	New-Item -ItemType directory $nugetWorkDir -ErrorAction SilentlyContinue | Out-Null
+	Copy-Item $slabSvcProjDir/* -Destination $nugetWorkDir
+	Copy-Item $slabSvcProjDir/tools/* -Destination $nugetWorkDir/tools
+
+	#Generate nuspec from template
+	$nuspecFile = Join-Path -Path $nugetWorkDir -ChildPath "Mamemaki.Slab.BigQuery.Service.nuspec"
+	$xml = [xml](Get-Content $nuspecFile)
+	$xml.package.metadata.version = $ver
+	$xml.package.metadata.releaseNotes = $changelog
+	$xml.Save($nuspecFile)
+
+	#Copy content files
+	$contentDir = Join-Path -Path $nugetWorkDir -ChildPath "content"
+	$slabSvcDir = Join-Path -Path $contentDir -ChildPath "SlabSvc"
+	New-Item -ItemType directory $slabSvcDir -ErrorAction SilentlyContinue | Out-Null
+	Copy-Item $releaseDir\SlabBigquery-svc.zip -Destination $slabSvcDir
+	Copy-Item $releaseDir\SLABSVC-WORK\BigQuerySinkElement.xsd -Destination $slabSvcDir
+	Copy-Item $releaseDir\SLABSVC-WORK\SemanticLogging-svc.xsd -Destination $slabSvcDir
+
+    $nupkgFile = Join-Path -Path $releaseDir -ChildPath "Mamemaki.Slab.BigQuery.Service.$ver.nupkg"
+    nuget pack $nuspecFile -OutputDirectory $releaseDir
+	if ($LASTEXITCODE -ne 0)
+	{
+		throw "nuget pack returned error code '$LASTEXITCODE'"
+	}
+    nuget push $nupkgFile
+	if ($LASTEXITCODE -ne 0)
+	{
+		throw "nuget push returned error code '$LASTEXITCODE'"
+	}
+	Write-Output "Publishing Out-of-process service Nuget package completed successfully"
+}
+
 #Rebuild project
 Build-Module
 
@@ -307,5 +353,6 @@ Create-GitHubRelease $version $changelog $slabSvcZipFile
 #Publish to Nuget
 Write-Output "Version: $version"
 Publish-NugetPackage $version $releaseDir $changelog
+Publish-OOPSvcNugetPackage $version $releaseDir $changelog
 
 Read-Host -Prompt "Press Enter to exit"
