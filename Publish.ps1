@@ -135,11 +135,21 @@ Function Check-Tag($ver)
 	}
 }
 
+Function Check-Origin()
+{
+	Write-Output "Check origin.."
+	$stdout = & git remote -v
+	Write-Verbose "stdout: $stdout"
+	if (!$stdout.Contains("origin`t$githubUrl (fetch)")) {
+		throw "origin not set or bad url. version:$stdout"
+	}
+}
+
 Function Push-GitHub()
 {
 	Write-Output "Push to GitHub.."
 
-	$stdout = & git push $githubUrl --tags
+	$stdout = & git push origin master --tags
 	Write-Verbose "stdout: $stdout"
 	if ($LASTEXITCODE -ne 0)
 	{
@@ -287,6 +297,7 @@ Write-Output $changelog
 #Check tag corespond to the version exists in local and GitHub
 #NOTE: You need tagging and push it to GitHub before start
 Check-Tag $version
+Check-Origin
 Push-GitHub
 #Check-GitHubTag $version
 
