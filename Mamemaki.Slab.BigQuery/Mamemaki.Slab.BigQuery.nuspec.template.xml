@@ -11,7 +11,7 @@
     <iconUrl>https://raw.githubusercontent.com/tsu1980/SlabBigQuery/master/logo.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
-    <releaseNotes></releaseNotes>
+    <releaseNotes>$releaseNotes$</releaseNotes>
     <copyright>Copyright Tsuyoshi Sumiyoshi 2015</copyright>
     <tags>slab bigquery</tags>
   </metadata>

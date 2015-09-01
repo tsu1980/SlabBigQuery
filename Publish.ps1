@@ -1,8 +1,14 @@
 [CmdletBinding()]
 Param()
 
-$projFile = "Mamemaki.Slab.BigQuery\Mamemaki.Slab.BigQuery.csproj"
-$moduleFile = "Mamemaki.Slab.BigQuery\bin\Release\Mamemaki.Slab.BigQuery.dll"
+$current = (Get-Location).Path
+$releasesDir = Join-Path -Path $current -ChildPath "Releases"
+$projDir = Join-Path -Path $current -ChildPath "Mamemaki.Slab.BigQuery"
+$projFile = Join-Path -Path $projDir -ChildPath "Mamemaki.Slab.BigQuery.csproj"
+$targetDir = Join-Path -Path $projDir -ChildPath "bin\Release"
+$targetFile = Join-Path -Path $targetDir -ChildPath "Mamemaki.Slab.BigQuery.dll"
+$nuspecTempFile = Join-Path -Path $projDir -ChildPath "Mamemaki.Slab.BigQuery.nuspec.template.xml"
+$nuspecFile = Join-Path -Path $projDir -ChildPath "Mamemaki.Slab.BigQuery.nuspec"
 $githubUrl = "https://github.com/tsu1980/SlabBigQuery"
 $githubApiUrl = "https://api.github.com/repos/tsu1980/SlabBigQuery"
 
@@ -20,6 +26,74 @@ Function Build-Module()
 		throw "msbuild returned error code '$LASTEXITCODE'"
 	}
 	Write-Output "Rebuild completed successfully"
+}
+
+Function Create-OOPPackage($ver, $destDir)
+{
+	$SLABSVC_URL = "https://slab.codeplex.com/downloads/get/881780"
+	$SLABSVC_ZIPFILE = "$env:temp\SemanticLogging-svc.2.0.1406.1.zip"
+	$SLABSVC_EXTRACTDIR = "$env:temp\SemanticLogging-svc.2.0.1406.1"
+
+	# Download the slab-svc if not exist
+	If (!(Test-Path $SLABSVC_ZIPFILE)) {
+		Invoke-WebRequest -uri $SLABSVC_URL -OutFile $SLABSVC_ZIPFILE
+		Unblock-File $SLABSVC_ZIPFILE
+	}
+
+	# Download the slab-svc packages if not exist
+	If (!(Test-Path $SLABSVC_EXTRACTDIR)) {
+		Expand-Archive -Path $SLABOOPSERVICEZIP -DestinationPath $SLABSVC_EXTRACTDIR
+
+		# Remove the ReadLine line in the uppacked script.
+		$INSTALLPACKAGESFILENAME = $SLABSVC_EXTRACTDIR + "\install-packages.ps1"
+		(Get-Content $INSTALLPACKAGESFILENAME) |  Where-Object {$_ -notlike "*ReadLine*"} | Set-Content $INSTALLPACKAGESFILENAME
+
+		# Run install-packages.ps1
+		.($INSTALLPACKAGESFILENAME) -autoAcceptTerms
+	}
+
+	# Copy slab-svc to work dir
+	$SLABSVC_WORKDIR = Join-Path -Path $destDir -ChildPath "SLABSVC-WORK"
+	If (Test-Path $SLABSVC_WORKDIR) {
+		Remove-Item $SLABSVC_WORKDIR -Recurse
+	}
+	New-Item -ItemType directory $SLABSVC_WORKDIR -ErrorAction SilentlyContinue | Out-Null
+	Copy-Item $SLABSVC_EXTRACTDIR\* -Destination $SLABSVC_WORKDIR
+
+	# Copy BigquerySink modules
+	# Overwrite Newtonsoft.Json.dll to BigQuery's one because its higher version,
+	# not overwrite anything else
+	Remove-Item $SLABSVC_WORKDIR\Newtonsoft.Json.dll
+	Copy-Item $targetDir\* -Destination $SLABSVC_WORKDIR -Exclude Microsoft.Practices.EnterpriseLibrary.SemanticLogging.*
+
+	# Adding dependencies of Mamemaki.Slab.Bigquery.dll to SemanticLogging-svc.exe.config
+	$SLABSVCCONFIG_FILENAME = "$SLABSVC_WORKDIR\SemanticLogging-svc.exe.config"
+	$txtSlabBigqueryDependencies = '<dependentAssembly>
+		<assemblyIdentity name="System.Net.Http.Extensions" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+		<bindingRedirect oldVersion="0.0.0.0-2.2.29.0" newVersion="2.2.29.0" />
+	  </dependentAssembly>
+	  <dependentAssembly>
+		<assemblyIdentity name="Newtonsoft.Json" publicKeyToken="30ad4fe6b2a6aeed" culture="neutral" />
+		<bindingRedirect oldVersion="0.0.0.0-7.0.0.0" newVersion="7.0.0.0" />
+	  </dependentAssembly>
+	  <dependentAssembly>
+		<assemblyIdentity name="System.Net.Http.Primitives" publicKeyToken="b03f5f7f11d50a3a" culture="neutral" />
+		<bindingRedirect oldVersion="0.0.0.0-4.2.29.0" newVersion="4.2.29.0" />
+	  </dependentAssembly>'
+	$xml = [xml](Get-Content $SLABSVCCONFIG_FILENAME)
+	$xmlFrag = $xml.CreateDocumentFragment()
+	$xmlFrag.InnerXml = $txtSlabBigqueryDependencies
+	$xml.configuration.runtime.assemblyBinding.AppendChild($xmlFrag) | Out-Null
+	$xml.Save($SLABSVCCONFIG_FILENAME)
+	# Remove xmlns=""
+	(Get-Content $SLABSVCCONFIG_FILENAME).Replace(' xmlns=""', '') | Set-Content $SLABSVCCONFIG_FILENAME
+
+	# Create final zip file
+	$SLABSVC_RELEASE_ZIPNAME = Join-Path -Path $destDir -ChildPath "SlabBigquery-svc.$ver.zip"
+	Remove-Item $SLABSVC_WORKDIR\*.pdb
+	Remove-Item $SLABSVC_WORKDIR\install-packages.ps1
+	Compress-Archive -Path $SLABSVC_WORKDIR\* -DestinationPath $SLABSVC_RELEASE_ZIPNAME -Force
+	return $SLABSVC_RELEASE_ZIPNAME
 }
 
 Function Get-ChangeLog($ver)
@@ -167,16 +241,23 @@ Function Create-GitHubRelease($ver, $changelog, $slabSvcPackageFile = $null)
 	Write-Output "Create GitHub release completed successfully"
 }
 
-Function Publish-NugetPackage($ver)
+Function Publish-NugetPackage($ver, $destDir, $changelog)
 {
 	Write-Output "Publishing Nuget package start.."
-    $file = "Mamemaki.Slab.BigQuery.$ver.nupkg"
-    nuget pack $projFile -IncludeReferencedProjects -Prop Configuration=Release
+
+	#Generate nuspec from template
+	Copy-Item $nuspecTempFile -Destination $nuspecFile
+	$xml = [xml](Get-Content $nuspecFile)
+	$xml.package.metadata.releaseNotes = $changelog
+	$xml.Save($nuspecFile)
+
+    $nupkgFile = Join-Path -Path $destDir -ChildPath "Mamemaki.Slab.BigQuery.$ver.nupkg"
+    nuget pack $projFile -IncludeReferencedProjects -Prop Configuration=Release -OutputDirectory $destDir
 	if ($LASTEXITCODE -ne 0)
 	{
 		throw "nuget pack returned error code '$LASTEXITCODE'"
 	}
-    #nuget push $file
+    nuget push $nupkgFile
 	if ($LASTEXITCODE -ne 0)
 	{
 		throw "nuget push returned error code '$LASTEXITCODE'"
@@ -188,8 +269,15 @@ Function Publish-NugetPackage($ver)
 Build-Module
 
 #Get version
-$version = (Get-Item $moduleFile).VersionInfo.FileVersion
+$version = (Get-Item $targetFile).VersionInfo.FileVersion
 Write-Output "version: $version"
+
+#Create release folder
+$releaseDir = Join-Path -Path $releasesDir -ChildPath "v$version"
+New-Item -ItemType directory $releaseDir -ErrorAction SilentlyContinue | Out-Null
+
+#Create Out-of-process service package
+$slabSvcZipFile = Create-OOPPackage $version $releaseDir
 
 #Get changelog for the publish version
 $changelog = Get-ChangeLog $version
@@ -203,10 +291,10 @@ Push-GitHub
 #Check-GitHubTag $version
 
 #Create GitHub release
-Create-GitHubRelease $version $changelog
+Create-GitHubRelease $version $changelog $slabSvcZipFile
 
 #Publish to Nuget
 Write-Output "Version: $version"
-Publish-NugetPackage $version
+Publish-NugetPackage $version $releaseDir $changelog
 
 Read-Host -Prompt "Press Enter to exit"

@@ -191,3 +191,5 @@ ModelManifest.xml
 
 # User upload files
 /*.nupkg
+/Releases
+/Mamemaki.Slab.BigQuery/Mamemaki.Slab.BigQuery.nuspec
