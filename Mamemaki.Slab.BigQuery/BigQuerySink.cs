@@ -294,7 +294,7 @@ PostRawJSON:{6}",
                                 x.e.Message, x.e.Reason, 
                                 JsonConvert.SerializeObject(x.r.Json, Formatting.None));
                         });
-                    BigQuerySinkEventSource.Log.BigQueryInsertFault(messages.ToString(), retry);
+                    BigQuerySinkEventSource.Log.BigQueryInsertFault(String.Join("\n", messages), retry);
                 }
                 catch (OperationCanceledException)
                 {
@@ -305,7 +305,6 @@ PostRawJSON:{6}",
                     BigQuerySinkEventSource.Log.BigQueryInsertFault(ex.ToString(), retry);
                     if (ex.HttpStatusCode == System.Net.HttpStatusCode.Unauthorized)
                     {
-                        BigQuerySinkEventSource.Log.BigQueryInsertFault(ex.ToString(), retry);
                         return; // something wrong in authentication. no retry
                     }
                 }
