@@ -9,7 +9,7 @@ $targetDir = Join-Path -Path $projDir -ChildPath "bin\Release"
 $targetFile = Join-Path -Path $targetDir -ChildPath "Mamemaki.Slab.BigQuery.dll"
 $nuspecTempFile = Join-Path -Path $projDir -ChildPath "Mamemaki.Slab.BigQuery.nuspec.template.xml"
 $nuspecFile = Join-Path -Path $projDir -ChildPath "Mamemaki.Slab.BigQuery.nuspec"
-$githubUrl = "https://github.com/tsu1980/SlabBigQuery"
+$githubUrl = "https://github.com/tsu1980/SlabBigQuery.git"
 $githubApiUrl = "https://api.github.com/repos/tsu1980/SlabBigQuery"
 
 if (!(Test-Path Env:\GITHUB_OAUTH_TOKEN)) {
