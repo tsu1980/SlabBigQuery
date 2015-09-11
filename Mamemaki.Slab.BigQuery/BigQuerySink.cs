@@ -22,7 +22,7 @@ namespace Mamemaki.Slab.BigQuery
 {
     public class BigQuerySink : IObserver<EventEntry>, IDisposable
     {
-        private TimeSpan _onCompletedTimeout;
+        private TimeSpan _bufferingFlushAllTimeout;
         private BufferedEventPublisher<EventEntry> _bufferedPublisher;
         private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
         private BigqueryService _BQSvc;
@@ -76,7 +76,7 @@ namespace Mamemaki.Slab.BigQuery
         /// <param name="insertIdFieldName">The field name of InsertId</param>
         /// <param name="bufferingInterval"></param>
         /// <param name="bufferingCount"></param>
-        /// <param name="onCompletedTimeout"></param>
+        /// <param name="bufferingFlushAllTimeout"></param>
         /// <param name="maxBufferSize"></param>
         public BigQuerySink(
             string projectId,
@@ -91,7 +91,7 @@ namespace Mamemaki.Slab.BigQuery
             string insertIdFieldName = null,
             TimeSpan? bufferingInterval = null,
             int? bufferingCount = null,
-            TimeSpan? onCompletedTimeout = null,
+            TimeSpan? bufferingFlushAllTimeout = null,
             int? maxBufferSize = null)
         {
             if (authMethod == null)
@@ -114,8 +114,8 @@ namespace Mamemaki.Slab.BigQuery
                 bufferingInterval = Constants.DefaultBufferingInterval;
             if (bufferingCount == null)
                 bufferingCount = Constants.DefaultBufferingCount;
-            if (onCompletedTimeout == null)
-                onCompletedTimeout = Constants.DefaultBufferingFlushAllTimeout;
+            if (bufferingFlushAllTimeout == null)
+                bufferingFlushAllTimeout = Constants.DefaultBufferingFlushAllTimeout;
             if (maxBufferSize == null)
                 maxBufferSize = Constants.DefaultMaxBufferSize;
             this.ProjectId = projectId;
@@ -155,7 +155,7 @@ namespace Mamemaki.Slab.BigQuery
                 HttpClientInitializer = credential,
             });
             _BackOff = new ExponentialBackOff();
-            _onCompletedTimeout = onCompletedTimeout.Value;
+            _bufferingFlushAllTimeout = bufferingFlushAllTimeout.Value;
             _bufferedPublisher = BufferedEventPublisher<EventEntry>.CreateAndStart(
                 "BigQuery", 
                 PublishEventsAsync, 
@@ -210,7 +210,7 @@ namespace Mamemaki.Slab.BigQuery
         {
             try
             {
-                FlushAsync().Wait(_onCompletedTimeout);
+                FlushAsync().Wait(_bufferingFlushAllTimeout);
             }
             catch (AggregateException ex)
             {

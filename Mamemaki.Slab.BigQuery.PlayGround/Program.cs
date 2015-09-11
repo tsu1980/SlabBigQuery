@@ -53,7 +53,7 @@ namespace Mamemaki.Slab.BigQuery.PlayGround
                     insertIdFieldName: "%uuid%",
                     bufferingInterval: TimeSpan.FromSeconds(1),
                     bufferingCount: 3,
-                    onCompletedTimeout: Constants.DefaultBufferingFlushAllTimeout,
+                    bufferingFlushAllTimeout: Constants.DefaultBufferingFlushAllTimeout,
                     maxBufferSize: 30000);
 
                 PlayGroundEventSource.Log.Trace("start");

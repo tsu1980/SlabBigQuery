@@ -24,7 +24,7 @@ namespace Mamemaki.Slab.BigQuery
             string insertIdFieldName = null,
             TimeSpan? bufferingInterval = null,
             int? bufferingCount = null,
-            TimeSpan? onCompletedTimeout = null,
+            TimeSpan? bufferingFlushAllTimeout = null,
             int? maxBufferSize = null)
         {
             var sink = new BigQuerySink(
@@ -40,7 +40,7 @@ namespace Mamemaki.Slab.BigQuery
                 insertIdFieldName,
                 bufferingInterval,
                 bufferingCount,
-                onCompletedTimeout,
+                bufferingFlushAllTimeout,
                 maxBufferSize);
 
             var subscription = eventStream.Subscribe(sink);
