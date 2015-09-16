@@ -139,7 +139,7 @@ namespace Mamemaki.Slab.BigQuery
             var certificate = new X509Certificate2(
                 privateKeyFile, 
                 privateKeyPassphrase, 
-                X509KeyStorageFlags.Exportable);
+                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
 
             ServiceAccountCredential credential = new ServiceAccountCredential(
             new ServiceAccountCredential.Initializer(serviceAccountEmail)
